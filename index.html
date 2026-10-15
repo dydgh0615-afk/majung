@@ -1,0 +1,1970 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>마중부동산 중개법인 통합 관리 시스템</title>
+<style>
+  :root{
+    --ink:#1c1a17;
+    --paper:#f7f4ee;
+    --line:#d8d0c0;
+    --stamp:#8a3324;
+    --stamp-soft:#f1e2dc;
+    --gold:#a6822f;
+    --gold-soft:#f4ecd8;
+    --green:#3c6e4a;
+    --green-soft:#e4ede2;
+    --blue:#33587a;
+    --blue-soft:#e3ecf3;
+    --muted:#8a8477;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Noto Sans KR","Malgun Gothic",sans-serif;
+    padding:20px 12px 80px;
+  }
+  .layout-container{
+    max-width:1350px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns: 1fr 440px;
+    gap:20px;
+    align-items:start;
+  }
+  @media(max-width:1024px){
+    .layout-container{grid-template-columns: 1fr;}
+  }
+  
+  .main-column{min-width:0;}
+  .side-column{
+    background:#fffdf7;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+    position:sticky;
+    top:20px;
+    box-shadow:0 4px 12px rgba(0,0,0,.03);
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  .head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:14px;
+    margin-bottom:18px;
+  }
+  .head h1{font-size:22px;margin:0;letter-spacing:-0.5px;}
+  .head .sub{font-size:12px;color:var(--muted);margin-top:4px;}
+  .count{font-size:12px;color:var(--muted);text-align:right;}
+  
+  /* 메모장 스타일 */
+  .memo-box{
+    margin-bottom:18px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#fffdf7;
+    box-shadow:inset 0 0 0 1px rgba(166,130,47,.08);
+    overflow:hidden;
+  }
+  .memo-tabs{
+    display:flex;background:#f2efe9;border-bottom:1px solid var(--line);flex-wrap:wrap;
+  }
+  .memo-tab{
+    flex:1;padding:8px 4px;text-align:center;font-size:11.5px;font-weight:700;cursor:pointer;color:var(--muted);background:transparent;border:none;white-space:nowrap;
+  }
+  .memo-tab.active{background:#fffdf7;color:var(--gold);border-bottom:2px solid var(--gold);}
+  .memo-body{padding:12px 14px;}
+  .memo-input-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;}
+  .memo-input-wrap textarea{
+    width:100%;border:none;background:transparent;font-size:13px;font-family:inherit;color:var(--ink);resize:vertical;min-height:50px;line-height:1.6;
+  }
+  .memo-input-wrap textarea:focus{outline:none;}
+  .memo-toolbar{display:flex;justify-content:space-between;align-items:center;border-top:1px dashed var(--line);padding-top:8px;}
+  .memo-date-info{font-size:11px;color:var(--muted);}
+  .memo-save-btn{border:none;background:var(--gold);color:#fff;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;}
+  .memo-save-btn:hover{opacity:.88;}
+
+  .memo-list{display:flex;flex-direction:column;gap:8px;max-height:180px;overflow-y:auto;}
+  .memo-item{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px;}
+  .memo-item-head{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;border-bottom:1px solid #f2efe9;padding-bottom:4px;}
+  .memo-item-content{white-space:pre-wrap;line-height:1.5;color:var(--ink);}
+  .memo-item-del{border:none;background:none;color:var(--stamp);cursor:pointer;font-size:11px;}
+
+  .searchbar{margin-bottom:12px;}
+  .searchbar input{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:9px 16px;
+    font-size:13px;
+    font-family:inherit;
+    background:#fff;
+    color:var(--ink);
+  }
+  .searchbar input:focus{outline:2px solid var(--gold);border-color:var(--gold);}
+  
+  /* 필터 영역 */
+  .filter-section{margin-bottom:12px;display:flex;flex-direction:column;gap:8px;background:#f2efe9;padding:10px 12px;border-radius:10px;border:1px solid var(--line);}
+  .filter-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .filter-row-label{font-size:11.5px;font-weight:700;color:var(--muted);width:52px;flex:none;}
+  .filter-row-content{display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex:1;}
+
+  .filter-btn{
+    border:1px solid var(--line);
+    background:#fff;
+    padding:5px 10px;
+    border-radius:999px;
+    font-size:11.5px;
+    cursor:pointer;
+    color:var(--muted);
+    white-space:nowrap;
+  }
+  .filter-btn.active{border-color:var(--ink);color:var(--ink);background:var(--gold-soft);font-weight:700;}
+  
+  .action-toolbar{display:flex;gap:8px;margin-bottom:16px;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+  .action-left{display:flex;gap:6px;align-items:center;}
+  .action-right{display:flex;gap:8px;align-items:center;}
+
+  .add-btn{
+    border:none;background:var(--ink);color:#fff;
+    padding:7px 14px;border-radius:999px;font-size:12.5px;cursor:pointer;font-weight:700;
+  }
+  .add-btn:hover{opacity:.88;}
+
+  .card{border:1px solid var(--line);border-radius:10px;background:#fff;margin-bottom:10px;overflow:hidden;}
+  .card.moved{opacity:.6;}
+  .card-head{display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;user-select:none;}
+  
+  .multi-chk{
+    width:18px;height:18px;flex:none;border:1.5px solid var(--line);border-radius:4px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;background:#fff;accent-color:var(--stamp);
+  }
+
+  .chk{
+    width:18px;height:18px;flex:none;border:1.5px solid var(--line);border-radius:5px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--green);
+  }
+  .chk.on{border-color:var(--green);background:var(--green-soft);}
+  .badge{flex:none;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;}
+  .badge.매매{background:var(--stamp-soft);color:var(--stamp);}
+  .badge.전세{background:var(--green-soft);color:var(--green);}
+  .badge.월세{background:var(--gold-soft);color:var(--gold);}
+  .badge.신축{background:#ede9fe;color:#7c3aed;}
+  .subbadge{flex:none;font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;background:var(--blue-soft);color:var(--blue);white-space:nowrap;}
+  .subbadge.created-time{background:#f3f4f6;color:#4b5563;}
+  .subbadge.inquiry-count{background:var(--gold-soft);color:var(--gold);}
+  .holdbtn{
+    flex:none;font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;
+    border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;white-space:nowrap;
+  }
+  .holdbtn.on{border-color:#b06a00;background:#fbe9cf;color:#8a4b00;}
+  .card.held{opacity:.55;}
+  .subbadge.hold{background:#fbe9cf;color:#8a4b00;}
+  .subbadge.moved-time{background:var(--stamp-soft);color:var(--stamp);}
+  .subbadge.trash{background:#fee2e2;color:#991b1b;}
+
+  .card-del-btn{
+    flex:none;font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;
+    border:1px solid var(--stamp);background:#fff;color:var(--stamp);cursor:pointer;white-space:nowrap;
+  }
+  .card-del-btn:hover{background:var(--stamp-soft);}
+
+  .title-block{flex:1;min-width:0;}
+  .addr{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .price{font-size:12px;color:var(--stamp);font-weight:700;margin-top:1px;}
+  .caret{flex:none;font-size:12px;color:var(--muted);transition:transform .15s ease;}
+  .card.open .caret{transform:rotate(90deg);}
+  .detail{display:none;padding:4px 14px 16px;border-top:1px dashed var(--line);}
+  .card.open .detail{display:block;}
+  .movehint{font-size:11px;color:var(--muted);margin-top:10px;}
+  .file-cell{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .file-btn{
+    border:1px solid var(--line);background:#fdfcf9;color:var(--ink);
+    padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;
+  }
+  .file-btn:hover{background:var(--gold-soft);}
+  .file-open{
+    color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;
+    text-decoration:underline;word-break:break-all;
+  }
+  .file-remove{
+    border:none;background:none;color:var(--stamp);font-size:12px;cursor:pointer;padding:2px 4px;
+  }
+  .photo-grid{
+    display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;
+  }
+  .photo-thumb{
+    position:relative;width:56px;height:56px;border-radius:6px;overflow:hidden;
+    border:1px solid var(--line);cursor:pointer;flex:none;
+  }
+  .photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .photo-thumb .photo-x{
+    position:absolute;top:1px;right:1px;background:rgba(0,0,0,.55);color:#fff;
+    width:16px;height:16px;border-radius:50%;font-size:10px;line-height:16px;text-align:center;
+    cursor:pointer;
+  }
+  .photo-add{
+    width:56px;height:56px;border-radius:6px;border:1.5px dashed var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--muted);
+    cursor:pointer;flex:none;background:#fdfcf9;
+  }
+  .grid{display:grid;grid-template-columns:88px 1fr;gap:7px 10px;margin-top:12px;}
+  .grid label{font-size:12px;color:var(--muted);padding-top:7px;white-space:nowrap;}
+  .grid input, .grid textarea{
+    width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 8px;
+    font-size:13px;font-family:inherit;background:#fdfcf9;color:var(--ink);
+  }
+  .grid textarea{resize:vertical;min-height:40px;line-height:1.5;}
+  .grid input:focus, .grid textarea:focus{outline:2px solid var(--gold);border-color:var(--gold);}
+  .row-actions{display:flex;justify-content:space-between;align-items:center;margin-top:14px;}
+  .saved{font-size:11px;color:var(--green);opacity:0;transition:opacity .3s;}
+  .saved.show{opacity:1;}
+  .restore-btn{border:1px solid var(--green);color:var(--green);background:#fff;font-size:12px;padding:6px 12px;border-radius:999px;cursor:pointer;}
+  .restore-btn:hover{background:var(--green-soft);}
+  .empty{text-align:center;color:var(--muted);font-size:13px;padding:40px 0;}
+  select.type-select{border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit;background:#fdfcf9;}
+
+  /* 우측 패널 스타일 */
+  .side-section { border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+  .side-section h3 { font-size: 14.5px; margin: 0 0 10px; color: var(--ink); border-left: 3px solid var(--gold); padding-left: 6px; }
+  .needs-group{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+  .needs-group label{font-size:11px;font-weight:700;color:var(--muted);}
+  .needs-group textarea, .needs-group input, .needs-group select{
+    width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:12px;background:#fff;font-family:inherit;
+  }
+  .rec-results{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;margin-top:8px;}
+  .rec-card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11.5px;display:flex;flex-direction:column;gap:3px;}
+  .rec-card-top{display:flex;justify-content:space-between;align-items:center;}
+  .rec-addr{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+  .rec-price{color:var(--stamp);font-weight:700;}
+  
+  /* 고객 카드 스타일 */
+  .client-card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px; font-size:12.5px; margin-bottom:10px; display:flex; flex-direction:column; gap:8px; box-shadow:0 2px 6px rgba(0,0,0,.02); }
+  .client-card.remind-alert { border-color:var(--stamp); background:#fff5f5; }
+  .client-head { display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:13.5px; }
+  .client-sub { font-size:11.5px; color:var(--muted); line-height:1.5; background:#faf9f6; padding:6px 8px; border-radius:6px; }
+  .consult-history { background:#fff; border:1px solid var(--line); border-radius:6px; padding:8px; font-size:11.5px; margin-top:4px; display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto; }
+  .consult-history-item { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px dashed #f2efe9; padding-bottom:4px; }
+  .consult-history-item:last-child { border-bottom:none; }
+
+  /* 모달 스타일 */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:999; align-items:center; justify-content:center; }
+  .modal-box { background:#fff; border-radius:14px; padding:24px; width:min(580px,92vw); max-height:90vh; display:flex; flex-direction:column; gap:12px; overflow-y:auto; box-shadow:0 10px 30px rgba(0,0,0,.15); }
+  
+  .brief-btn{
+    border:none;background:var(--blue);color:#fff;padding:6px 10px;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;width:100%;text-align:center;
+  }
+  .brief-btn:hover{opacity:.88;}
+
+  .client-pagination { display:flex; justify-content:center; align-items:center; gap:6px; margin-top:8px; }
+  .client-page-btn { border:1px solid var(--line); background:#fff; color:var(--ink); width:26px; height:26px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer; }
+  .client-page-btn.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+
+  .pagination{
+    display:flex; justify-content:center; align-items:center; gap:4px; margin-top:24px; flex-wrap:wrap;
+  }
+  .page-btn{
+    border:1px solid var(--line); background:#fff; color:var(--ink); width:32px; height:32px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .page-btn.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  .page-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+</style>
+</head>
+<body>
+
+<!-- 텍스트 자동입력 모달 -->
+<div id="parseModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:20px;width:min(560px,90vw);max-height:85vh;display:flex;flex-direction:column;gap:10px;">
+    <div style="font-size:15px;font-weight:700;color:var(--ink);">✨ 매물 텍스트 스마트 다중 자동입력</div>
+    <div style="font-size:12px;color:#8a8477;line-height:1.5;">매물 양식 텍스트를 통째로 붙여넣으세요. 주차대수, 옵션, 위반 여부 등이 자동으로 분류됩니다.</div>
+    <textarea id="parseTextarea" placeholder="여기에 매물 양식 텍스트를 통째로 붙여넣으세요..." style="width:100%;min-height:180px;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12.5px;font-family:inherit;line-height:1.5;"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
+      <button id="parseCancelBtn" style="border:1px solid var(--line);background:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;">취소</button>
+      <button id="parseConfirmBtn" style="border:none;background:var(--green);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;">지능형 분석 후 등록</button>
+    </div>
+  </div>
+</div>
+
+<!-- 손님 등록 모달 -->
+<div class="modal-overlay" id="clientModal">
+  <div class="modal-box">
+    <div style="font-size:17px;font-weight:700;color:var(--ink);border-bottom:2px solid var(--gold);padding-bottom:8px;">👤 문의 손님 등록 및 리마인드 설정</div>
+    <div style="font-size:12px;color:#8a8477;">고객 정보를 기록하면 자동으로 1차 상담이 기록되고 2일 뒤 리마인드 알림이 설정됩니다.</div>
+    
+    <div class="needs-group">
+      <label>관련 매물 정보 (일반 문의 시 비어있음)</label>
+      <input type="text" id="cListingTarget" readonly style="background:#f2efe9;font-weight:bold;">
+    </div>
+    <div class="needs-group">
+      <label>손님 성함 / 연락처</label>
+      <input type="text" id="cName" placeholder="예: 김철수 (010-1234-5678)">
+    </div>
+    <div class="needs-group">
+      <label>플랫폼 출처</label>
+      <input type="text" id="cPlatform" placeholder="예: 네이버부동산, 직방, 당근, 직접방문 등">
+    </div>
+    <div class="needs-group">
+      <label>거래 종류 및 목적</label>
+      <select id="cPurpose">
+        <option value="매매(실입주)">매매 (실입주)</option>
+        <option value="매매(투자)">매매 (투자)</option>
+        <option value="전세">전세</option>
+        <option value="월세">월세</option>
+      </select>
+    </div>
+    <div class="needs-group">
+      <label>희망 지역 / 예산 / 기타 요구사항</label>
+      <textarea id="cDetail" style="min-height:50px;" placeholder="예: 강동구 일대, 예산 5억 안쪽 등"></textarea>
+    </div>
+    <div class="needs-group">
+      <label>💬 초기 상담 내용 기록 (1차 상담)</label>
+      <textarea id="cInitialConsult" style="min-height:50px;" placeholder="1차 상담 내용 요약"></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+      <button id="clientCancelBtn" style="border:1px solid var(--line);background:#fff;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:13px;">취소</button>
+      <button id="clientSaveBtn" style="border:none;background:var(--blue);color:#fff;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;">손님 등록하기</button>
+    </div>
+  </div>
+</div>
+
+<div class="layout-container">
+  <!-- 좌측 메인 영역 -->
+  <div class="main-column">
+    <!-- 기간별 공용 메모장 -->
+    <div class="memo-box">
+      <div class="memo-tabs">
+        <button class="memo-tab active" data-mtype="month">📅 월별 메모</button>
+        <button class="memo-tab" data-mtype="week">📆 주간별 메모</button>
+        <button class="memo-tab" data-mtype="day">📌 일별 메모</button>
+        <button class="memo-tab" data-mtype="year">📈 연별 메모</button>
+        <button class="memo-tab" data-mtype="contract">🤝 계약/일정</button>
+      </div>
+      <div class="memo-body">
+        <div class="memo-input-wrap">
+          <textarea id="memoInput" placeholder="이 기간에 직원들과 공유할 새로운 메모 또는 계약 일정을 작성하세요..."></textarea>
+          <div class="memo-toolbar">
+            <span class="memo-date-info" id="memoDatePreview">작성 시각: 실시간 자동 기록</span>
+            <button class="memo-save-btn" id="memoAddBtn">메모 등록하기 ✍️</button>
+          </div>
+        </div>
+        <div class="memo-list" id="memoListContainer"></div>
+      </div>
+    </div>
+
+    <div class="head">
+      <div>
+        <h1>🏢 마중부동산 중개법인 통합 관리 시스템</h1>
+        <div class="sub">매물 문의 연동 및 통합 관리 시스템</div>
+      </div>
+      <div class="count" id="countBox"></div>
+    </div>
+    <div id="statusLine" style="font-size:13px;font-weight:700;color:#fff;background:#8a8477;padding:8px 12px;border-radius:8px;margin:0 0 14px;text-align:center;">서버 연결 중…</div>
+
+    <div class="searchbar">
+      <input type="text" id="searchInput" placeholder="주소, 금액, 비고, 연락처 등으로 검색">
+    </div>
+
+    <!-- 상태 필터와 행정구역 필터 -->
+    <div class="filter-section" id="filterSection">
+      <div class="filter-row">
+        <div class="filter-row-label">상태필터</div>
+        <div class="filter-row-content" id="statusFiltersContainer">
+          <button class="filter-btn active" data-f="전체">전체</button>
+          <button class="filter-btn" data-f="매매">매매</button>
+          <button class="filter-btn" data-f="전세">전세</button>
+          <button class="filter-btn" data-f="월세">월세</button>
+          <button class="filter-btn" data-f="나감">나감</button>
+          <button class="filter-btn" data-f="보류">보류</button>
+          <button class="filter-btn" data-f="신축">신축</button>
+          <button class="filter-btn" data-f="휴지통">🗑 휴지통</button>
+        </div>
+      </div>
+      <div class="filter-row" id="districtRow" style="display:none;">
+        <div class="filter-row-label">행정구역</div>
+        <div class="filter-row-content" id="districtFilters"></div>
+      </div>
+    </div>
+
+    <div class="action-toolbar">
+      <div class="action-left">
+        <input type="checkbox" id="selectAllTrashChk" style="display:none;width:18px;height:18px;cursor:pointer;" title="전체 선택">
+        <label for="selectAllTrashChk" id="selectAllTrashLabel" style="display:none;font-size:12px;font-weight:bold;cursor:pointer;">전체선택</label>
+        <button class="add-btn" id="multiDeleteBtn" style="background:var(--stamp);display:none;">🗑 선택 삭제</button>
+        <button class="add-btn" id="trashPurgeAllBtn" style="background:var(--stamp);display:none;">🔥 휴지통 전체 강제삭제</button>
+        <button class="add-btn" id="multiRestoreBtn" style="background:var(--green);display:none;">♻️ 선택 복구</button>
+      </div>
+      <div class="action-right">
+        <button class="add-btn" id="parseOpenBtn" style="background:var(--gold);">✨ 텍스트 자동입력</button>
+        <button class="add-btn" id="addBtn">+ 매물 추가</button>
+      </div>
+    </div>
+
+    <!-- 매물 리스트 출력 영역 -->
+    <div id="listContainerWrapper">
+      <div id="directList"></div>
+    </div>
+
+    <div class="empty" id="emptyMsg" style="display:none;">등록된 매물이 없어요. [+ 매물 추가] 또는 [✨ 텍스트 자동입력]을 눌러보세요!</div>
+    
+    <div class="pagination" id="paginationBox"></div>
+  </div>
+
+  <!-- 우측 컬럼: AI 추천 및 문의 손님 관리 센터 -->
+  <div class="side-column">
+    <!-- 섹션 1: AI 자연어 매물 추천 -->
+    <div class="side-section">
+      <h3>🤖 AI 자연어 니즈 추천</h3>
+      <div class="needs-group">
+        <label>손님 니즈를 자유롭게 적어보세요</label>
+        <textarea id="aiNeedsInput" placeholder="예: 강동구일대, 투자금 2.5억 또는 매매 5억안쪽, 대출가능, 역세권, 엘베"></textarea>
+      </div>
+      <button class="brief-btn" id="aiSearchBtn" style="background:var(--gold);">🎯 자동 추천 매물 찾기</button>
+      
+      <div style="font-size:11px;color:var(--muted);margin:8px 0 4px;font-weight:700;" id="aiRecCountTitle">추천 결과 (0건)</div>
+      <div class="rec-results" id="aiRecResultsContainer"></div>
+      <button class="brief-btn" id="copyBriefBtn" style="background:var(--blue);margin-top:8px;">📋 답장 유도형 문자 생성 및 복사</button>
+    </div>
+
+    <!-- 섹션 2: 문의 손님 관리 & 일반 손님 등록 -->
+    <div class="side-section" style="border-bottom:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h3 style="margin:0;border:none;padding:0;">👥 문의 손님 관리</h3>
+        <button class="add-btn" id="openGeneralClientBtn" style="font-size:11px;padding:5px 10px;background:var(--blue);">+ 일반 손님 등록</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">매물별 상세 안에서 문의 고객을 등록하거나 우측 상단 버튼으로 일반 손님을 등록하세요.</div>
+      <div id="clientListContainer" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div class="client-pagination" id="clientPaginationBox"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK (Modular v9+) -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCTvPE95ugU07AR33pW7lNhAxttGUCrWnA",
+  authDomain: "majung-f9a54.firebaseapp.com",
+  projectId: "majung-f9a54",
+  storageBucket: "majung-f9a54.firebasestorage.app",
+  messagingSenderId: "1018053609412",
+  appId: "1:1018053609412:web:232057cee64d0e5deec691",
+  measurementId: "G-KHM5XDE9LQ"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const FIELDS = [
+  ["addr","주소"],
+  ["price","금액"],
+  ["mgmtFee","관리비/포함내역"],
+  ["structure","구조/베란다여부"],
+  ["floor","해당층/총층"],
+  ["year","준공년도"],
+  ["moveIn","입주가능일"],
+  ["parking","주차"],
+  ["option","옵션"],
+  ["area","전용/공용"],
+  ["landShare","지분면적"],
+  ["officialPrice","공시가"],
+  ["loan","융자금"],
+  ["violation","위반여부"],
+  ["owner","소유자정보"],
+  ["tenant","세입자여부"],
+  ["insurance","보증보험가능여부"],
+  ["note","비고"],
+  ["contact","연락처"],
+  ["ref","참고"]
+];
+
+const MOVE_MAP = {
+  "매매": {sub:"나감", label:"나감"},
+  "전세": {sub:"나감", label:"나감"},
+  "월세": {sub:"나감", label:"나감"},
+  "신축": {sub:"나감", label:"나감"},
+  "기타": {sub:"나감", label:"나감"}
+};
+
+const CATEGORIES = [
+  {key:"매매", type:"매매", sub:""},
+  {key:"전세", type:"전세", sub:""},
+  {key:"월세", type:"월세", sub:""},
+  {key:"신축", type:"신축", sub:""},
+  {key:"나감", keepType:true, sub:"나감"},
+  {key:"보류", keepType:true, keepSub:true, hold:true}
+];
+
+const DONG_TO_GU = {
+  "잠실동":"송파구", "신천동":"송파구", "풍납동":"송파구", "거여동":"송파구", "마천동":"송파구", "방이동":"송파구", "오금동":"송파구", "송파동":"송파구", "석촌동":"송파구", "삼전동":"송파구", "가락동":"송파구", "문정동":"송파구", "장지동":"송파구", "오륜동":"송파구", "위례동":"송파구",
+  "사당동":"동작구", "상도동":"동작구", "노량진동":"동작구", "본동":"동작구", "흑석동":"동작구", "동작동":"동작구", "대방동":"동작구", "신대방동":"동작구",
+  "역삼동":"강남구", "개포동":"강남구", "청담동":"강남구", "삼성동":"강남구", "대치동":"강남구", "신사동":"강남구", "논현동":"강남구", "압구정동":"강남구", "세곡동":"강남구", "자곡동":"강남구", "율현동":"강남구", "일원동":"강남구", "수서동":"강남구", "도곡동":"강남구",
+  "서초동":"서초구", "잠원동":"서초구", "반포동":"서초구", "방배동":"서초구", "양재동":"서초구", "우면동":"서초구", "원지동":"서초구", "내곡동":"서초구", "신원동":"서초구",
+  "관악구":"관악구", "봉천동":"관악구", "신림동":"관악구", "남현동":"관악구",
+  "구로구":"구로구", "신도림동":"구로구", "구로동":"구로구", "가리봉동":"구로구", "고척동":"구로구", "개봉동":"구로구", "오류동":"구로구", "항동":"구로구", "궁동":"구로구", "천왕동":"구로구",
+  "영등포구":"영등포구", "영등포동":"영등포구", "여의도동":"영등포구", "당산동":"영등포구", "도림동":"영등포구", "문래동":"영등포구", "양평동":"영등포구", "양화동":"영등포구", "신길동":"영등포구", "대림동":"영등포구",
+  "마포구":"마포구", "아현동":"마포구", "공덕동":"마포구", "신공덕동":"마포구", "도화동":"마포구", "용강동":"마포구", "토정동":"마포구", "마포동":"마포구", "대흥동":"마포구", "염리동":"마포구", "노고산동":"마포구", "신수동":"마포구", "창전동":"마포구", "상수동":"마포구", "하중동":"마포구", "신정동":"마포구", "당인동":"마포구", "구수동":"마포구", "현석동":"마포구", "창후동":"마포구", "합정동":"마포구", "서교동":"마포구", "동교동":"마포구", "성산동":"마포구", "중동":"마포구", "상암동":"마포구",
+  "용산구":"용산구", "후암동":"용산구", "용산동":"용산구", "남영동":"용산구", "동자동":"용산구", "갈월동":"용산구", "청파동":"용산구", "원효로":"용산구", "효창동":"용산구", "용문동":"용산구", "도원동":"용산구", "한강로":"용산구", "이촌동":"용산구", "이태원동":"용산구", "한남동":"용산구", "보광동":"용산구", "서빙고동":"용산구", "동빙고동":"용산구", "주성동":"용산구",
+  "강동구":"강동구", "천호동":"강동구", "성내동":"강동구", "길동":"강동구", "명일동":"강동구", "상일동":"강동구", "암사동":"강동구", "둔촌동":"강동구"
+};
+
+function detectGu(addrText){
+  if(!addrText) return "";
+  for(const [dong, gu] of Object.entries(DONG_TO_GU)){
+    if(addrText.includes(dong)) return gu;
+  }
+  const matchGu = addrText.match(/([가-힣]+구)/);
+  if(matchGu) return matchGu[1];
+  return "";
+}
+
+function getFormattedNow(){
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${yyyy}.${mm}.${dd} ${hh}:${min}`;
+}
+
+let listings = [];
+let clients = [];
+let openId = null;
+let statusFilter = "전체";
+let districtFilter = "전체";
+let searchQuery = "";
+let currentPage = 1;
+let clientCurrentPage = 1;
+const ITEMS_PER_PAGE = 10;
+const CLIENTS_PER_PAGE = 4;
+let currentMemoType = "month";
+let memosData = { month: [], week: [], day: [], year: [], contract: [] };
+let activeClientListingId = null;
+
+async function checkAutoPurgeTrash(){
+  const now = Date.now();
+  const TEN_DAYS_MS = 10 * 24 * 60 * 60 * 1000;
+  let hasChanged = false;
+
+  const validListings = listings.filter(item => {
+    if(item.isDeleted && item.deletedAt){
+      const diff = now - item.deletedAt;
+      if(diff >= TEN_DAYS_MS){
+        hasChanged = true;
+        return false;
+      }
+    }
+    return true;
+  });
+
+  if(hasChanged){
+    listings = validListings;
+    await saveToFirebase();
+  }
+}
+
+function matchesSearch(item, q){
+  if(!q) return true;
+  const needle = q.trim().toLowerCase();
+  if(!needle) return true;
+  const haystack = [
+    item.addr, item.price, item.mgmtFee, item.structure, item.floor, item.year,
+    item.moveIn, item.parking, item.option, item.area, item.landShare,
+    item.officialPrice, item.loan, item.violation, item.owner, item.tenant,
+    item.insurance, item.note, item.contact, item.ref, item.type
+  ].filter(Boolean).join(" ").toLowerCase();
+  return haystack.includes(needle);
+}
+
+function setStatus(msg, ok){
+  const el = document.getElementById("statusLine");
+  if(!el) return;
+  el.textContent = msg;
+  el.style.background = ok === false ? "#8a3324" : (ok === true ? "#3c6e4a" : "#8a8477");
+}
+
+async function saveToFirebase(){
+  try {
+    await set(ref(db, 'majung_data/listings'), listings);
+    await set(ref(db, 'majung_data/clients'), clients);
+    setStatus("🟢 파이어베이스 실시간 동기화 완료", true);
+  } catch(e) {
+    console.error(e);
+    setStatus("⚠ 저장 실패: " + e.message, false);
+  }
+}
+
+async function saveMemosToFirebase(){
+  try {
+    await set(ref(db, 'majung_data/memos'), memosData);
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function initRealtimeSync(){
+  try {
+    const listRef = ref(db, 'majung_data/listings');
+    onValue(listRef, (snapshot) => {
+      const data = snapshot.val();
+      if(data && Array.isArray(data)){
+        listings = data.map(item => ({
+          sub: "", hold: false, isDeleted: false, deletedAt: null, 
+          createdAt: item.createdAt || getFormattedNow(), files: [], photos: [], ...item
+        }));
+        checkAutoPurgeTrash();
+      } else {
+        listings = [];
+      }
+      render();
+    }, (error) => {
+      setStatus("⚠ 실시간 연결 오류: " + error.message, false);
+    });
+
+    const clientRef = ref(db, 'majung_data/clients');
+    onValue(clientRef, (snapshot) => {
+      const data = snapshot.val();
+      if(data && Array.isArray(data)){
+        clients = data;
+      } else {
+        clients = [];
+      }
+      renderClients();
+    });
+
+    const memosRef = ref(db, 'majung_data/memos');
+    onValue(memosRef, (snapshot) => {
+      const val = snapshot.val();
+      if(val && typeof val === "object"){
+        ["month", "week", "day", "year", "contract"].forEach(type => {
+          if(val[type] && typeof val[type] === "string"){
+            memosData[type] = [{id: Date.now(), text: val[type], time: getFormattedNow()}];
+          } else if(Array.isArray(val[type])){
+            memosData[type] = val[type];
+          } else {
+            memosData[type] = [];
+          }
+        });
+      }
+      renderMemos();
+    });
+  } catch(e) {
+    setStatus("⚠ 연결 실패: " + e.message, false);
+  }
+}
+
+function flashCardSaved(id){
+  const el = document.querySelector(`[data-saved="${id}"]`);
+  if(!el) return;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"), 900);
+}
+
+function newListing(){
+  return {
+    id: "n"+Date.now()+Math.floor(Math.random()*1000),
+    type:"월세", sub:"", movedTime:"", hold:false, isDeleted:false, deletedAt:null,
+    createdAt: getFormattedNow(), addr:"", price:"", mgmtFee:"", structure:"",
+    floor:"", year:"", moveIn:"", parking:"", option:"", area:"", landShare:"",
+    officialPrice:"", loan:"", violation:"", owner:"", tenant:"", insurance:"",
+    note:"", contact:"", ref:"", files:[], photos:[]
+  };
+}
+
+// 지능형 텍스트 스마트 파서 (주차, 옵션, 위반, 융자 등 자동 필터 인식 강화)
+function parseListingText(text){
+  const item = newListing();
+  const cleanFull = text.trim();
+
+  if(cleanFull.includes("매매") || cleanFull.includes("(매매)")) {
+    item.type = "매매";
+  } else if(cleanFull.includes("전세") || cleanFull.includes("(전세)")) {
+    item.type = "전세";
+  } else if(cleanFull.includes("월세") || cleanFull.includes("(월세)") || cleanFull.includes("보증금")) {
+    item.type = "월세";
+  } else if(cleanFull.includes("신축") || cleanFull.includes("(신축)")) {
+    item.type = "신축";
+  }
+
+  const lines = cleanFull.split("\n");
+  let extraContacts = [];
+  let unassignedNotes = [];
+  let isNoteSection = false;
+
+  lines.forEach((line, index) => {
+    const clean = line.trim();
+    if(!clean) return;
+
+    if(index === 0 && !clean.includes(":") && !clean.includes("：")) {
+      item.addr = clean;
+      return;
+    }
+
+    if(clean === "비고" || clean === "특이사항") {
+      isNoteSection = true;
+      return;
+    }
+
+    if(isNoteSection) {
+      unassignedNotes.push(clean);
+      return;
+    }
+
+    let colonIdx = clean.indexOf(":");
+    if(colonIdx === -1) colonIdx = clean.indexOf("：");
+
+    if(colonIdx !== -1) {
+      let key = clean.substring(0, colonIdx).trim().replace(/[-–—]/g,"").trim();
+      let val = clean.substring(colonIdx + 1).trim();
+
+      if(key.includes("주소")) {
+        item.addr = val;
+      } else if(key.includes("가격") || key.includes("보증금") || key.includes("월세") || key.includes("매매")) {
+        if(val.includes("/")) {
+          const parts = val.split("/").map(p => p.trim());
+          if(parts.length >= 3) {
+            item.price = parts[0] + " / " + parts[1];
+            item.mgmtFee = "관리비 " + parts[2];
+          } else {
+            item.price = val;
+          }
+        } else {
+          item.price = val;
+        }
+      } else if(key.includes("관리비")) {
+        item.mgmtFee = val;
+      } else if(key.includes("구조")) {
+        item.structure = val;
+      } else if(key.includes("층") && !key.includes("준공")) {
+        item.floor = val;
+      } else if(key.includes("준공")) {
+        item.year = val;
+      } else if(key.includes("전용") || key.includes("면적")) {
+        item.area = clean;
+      } else if(key.includes("공시가")) {
+        item.officialPrice = val;
+      } else if(key.includes("주차") || key.includes("엘베")) {
+        item.parking = val;
+      } else if(key.includes("옵션")) {
+        item.option = val;
+      } else if(key.includes("위반")) {
+        item.violation = val;
+      } else if(key.includes("융자") || key.includes("대출")) {
+        item.loan = val;
+      } else if(key.includes("소유자")) {
+        item.owner = val;
+      } else if(key.includes("세입자")) {
+        item.tenant = val;
+      } else if(key.includes("대지지분") || key.includes("지분")) {
+        item.landShare = val;
+      } else if(key.includes("입주")) {
+        item.moveIn = val;
+      } else if(key.includes("연락처")) {
+        if(val) extraContacts.push(val);
+      } else {
+        unassignedNotes.push(clean);
+      }
+    } else {
+      // 키포인트 자동 단어 매칭
+      if(clean.includes("주차") && !item.parking) {
+        item.parking = clean;
+      } else if((clean.includes("옵션") || clean.includes("풀옵션")) && !item.option) {
+        item.option = clean;
+      } else if(clean.includes("위반") && !item.violation) {
+        item.violation = clean;
+      } else if(!item.addr && (clean.includes("구") || clean.includes("동") || clean.includes("로"))) {
+        item.addr = clean;
+      } else {
+        unassignedNotes.push(clean);
+      }
+    }
+  });
+
+  if(extraContacts.length > 0) {
+    item.contact = extraContacts.join(" / ");
+  }
+
+  if(unassignedNotes.length > 0) {
+    item.ref = unassignedNotes.join(" / ");
+  }
+
+  if(!item.addr) {
+    item.addr = lines[0] || "신규 매물";
+  }
+
+  return item;
+}
+
+function splitMultipleListings(rawText) {
+  const chunks = rawText.split(/(?:\r?\n\s*\r?\n)+(?=[가-힣\s]+\d+[-~\d]*\s)|(?:\r?\n\s*\r?\n)+(?=\([가-힣]+\))/);
+  return chunks.map(c => c.trim()).filter(Boolean);
+}
+
+function getAvailableDistricts(){
+  const districts = new Set();
+  listings.forEach(l => {
+    if(!l.isDeleted){
+      const gu = detectGu(l.addr);
+      if(gu) districts.add(gu);
+    }
+  });
+  return Array.from(districts).sort();
+}
+
+function matchesFilter(item){
+  if(statusFilter === "휴지통"){
+    if(!item.isDeleted) return false;
+  } else {
+    if(item.isDeleted) return false;
+
+    let passStatus = true;
+    if(statusFilter === "보류"){
+      passStatus = !!item.hold;
+    } else if(statusFilter === "나감"){
+      passStatus = (item.sub === "나감");
+    } else if(statusFilter !== "전체"){
+      passStatus = (item.type === statusFilter);
+    }
+    if(!passStatus) return false;
+  }
+
+  if(districtFilter !== "전체"){
+    const gu = detectGu(item.addr);
+    if(gu !== districtFilter) return false;
+  }
+
+  return true;
+}
+
+function renderDistrictButtons(){
+  const row = document.getElementById("districtRow");
+  const container = document.getElementById("districtFilters");
+  if(!container || !row) return;
+
+  const districts = getAvailableDistricts();
+  if(districts.length === 0){
+    row.style.display = "none";
+    return;
+  }
+
+  row.style.display = "flex";
+  container.innerHTML = "";
+
+  const allBtn = document.createElement("button");
+  allBtn.className = "filter-btn" + (districtFilter === "전체" ? " active" : "");
+  allBtn.textContent = "전체 구";
+  allBtn.addEventListener("click", () => {
+    districtFilter = "전체";
+    currentPage = 1;
+    render();
+  });
+  container.appendChild(allBtn);
+
+  districts.forEach(gu => {
+    const btn = document.createElement("button");
+    btn.className = "filter-btn" + (districtFilter === gu ? " active" : "");
+    btn.textContent = gu;
+    btn.addEventListener("click", () => {
+      districtFilter = gu;
+      currentPage = 1;
+      render();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function renderPagination(totalCount){
+  const paginationBox = document.getElementById("paginationBox");
+  if(!paginationBox) return;
+  paginationBox.innerHTML = "";
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
+  if(currentPage > totalPages) currentPage = totalPages;
+
+  const maxLimit = Math.min(totalPages, 100);
+  if(maxLimit <= 1) return;
+
+  const prevBtn = document.createElement("button");
+  prevBtn.className = "page-btn";
+  prevBtn.textContent = "◀";
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.addEventListener("click", () => {
+    if(currentPage > 1){ currentPage--; render(); }
+  });
+  paginationBox.appendChild(prevBtn);
+
+  for(let i = 1; i <= maxLimit; i++){
+    const pBtn = document.createElement("button");
+    pBtn.className = "page-btn" + (currentPage === i ? " active" : "");
+    pBtn.textContent = i;
+    pBtn.addEventListener("click", () => {
+      currentPage = i;
+      render();
+    });
+    paginationBox.appendChild(pBtn);
+  }
+
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "page-btn";
+  nextBtn.textContent = "▶";
+  nextBtn.disabled = currentPage === maxLimit;
+  nextBtn.addEventListener("click", () => {
+    if(currentPage < maxLimit){ currentPage++; render(); }
+  });
+  paginationBox.appendChild(nextBtn);
+}
+
+function render(){
+  renderDistrictButtons();
+  const directListEl = document.getElementById("directList");
+  const emptyMsg = document.getElementById("emptyMsg");
+  directListEl.innerHTML = "";
+
+  const filtered = listings.filter(l => matchesFilter(l) && matchesSearch(l, searchQuery));
+  const activeTotalCount = listings.filter(l => !l.isDeleted).length;
+  document.getElementById("countBox").textContent =
+    searchQuery.trim() ? `검색결과 ${filtered.length}건 / 총 ${activeTotalCount}건` : `총 ${activeTotalCount}건`;
+
+  emptyMsg.style.display = filtered.length ? "none" : "block";
+
+  const multiDelBtn = document.getElementById("multiDeleteBtn");
+  const trashPurgeAllBtn = document.getElementById("trashPurgeAllBtn");
+  const multiResBtn = document.getElementById("multiRestoreBtn");
+  const selectAllTrashChk = document.getElementById("selectAllTrashChk");
+  const selectAllTrashLabel = document.getElementById("selectAllTrashLabel");
+
+  if(statusFilter === "휴지통"){
+    if(multiDelBtn) multiDelBtn.style.display = "inline-block";
+    if(trashPurgeAllBtn) trashPurgeAllBtn.style.display = "inline-block";
+    if(multiResBtn) multiResBtn.style.display = "inline-block";
+    if(selectAllTrashChk) selectAllTrashChk.style.display = "inline-block";
+    if(selectAllTrashLabel) selectAllTrashLabel.style.display = "inline-block";
+  } else {
+    if(multiDelBtn) multiDelBtn.style.display = "inline-block";
+    if(trashPurgeAllBtn) trashPurgeAllBtn.style.display = "none";
+    if(multiResBtn) multiResBtn.style.display = "none";
+    if(selectAllTrashChk) { selectAllTrashChk.style.display = "none"; selectAllTrashChk.checked = false; }
+    if(selectAllTrashLabel) selectAllTrashLabel.style.display = "none";
+  }
+
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const pageItems = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  pageItems.forEach(item => {
+    const moveInfo = MOVE_MAP[item.type] || {sub:"나감", label:"나감"};
+    const isMoved = !item.isDeleted && item.sub === "나감";
+    const isHeld = !item.isDeleted && !!item.hold;
+    const isTrash = !!item.isDeleted;
+    const guTag = detectGu(item.addr);
+    const createdStr = item.createdAt ? `등록: ${item.createdAt}` : "";
+
+    const inquiryCount = clients.filter(c => c.listingId === item.id).length;
+
+    const card = document.createElement("div");
+    card.className = "card" + (item.id===openId ? " open" : "") + (isMoved ? " moved" : "") + (isHeld ? " held" : "");
+
+    let trashBadgeText = "";
+    if(isTrash && item.deletedAt){
+      const passedDays = Math.floor((Date.now() - item.deletedAt) / (1000 * 60 * 60 * 24));
+      const remainDays = Math.max(0, 10 - passedDays);
+      trashBadgeText = `휴지통 (자동삭제까지 ${remainDays}일)`;
+    }
+
+    const head = document.createElement("div");
+    head.className = "card-head";
+
+    head.innerHTML = `
+      <input type="checkbox" class="multi-chk" data-item-id="${item.id}" title="선택">
+      <div class="chk ${isMoved?'on':''}" data-act="toggle-move" data-id="${item.id}" ${isTrash?'style="display:none;"':''}>${isMoved?'✓':''}</div>
+      <div class="badge ${item.type}">${item.type}</div>
+      ${guTag ? `<div class="subbadge" style="background:#eef2ff;color:#4f46e5;">${guTag}</div>` : ""}
+      ${inquiryCount > 0 ? `<div class="subbadge inquiry-count" title="이 매물로 접수된 문의 횟수">📞 문의 ${inquiryCount}건</div>` : ""}
+      ${createdStr ? `<div class="subbadge created-time">${createdStr}</div>` : ""}
+      ${isTrash ? `<div class="subbadge trash">${trashBadgeText}</div>` : (isHeld ? `<div class="subbadge hold">보류</div>` : (isMoved && item.movedTime ? `<div class="subbadge moved-time">나감(${item.movedTime})</div>` : (isMoved ? `<div class="subbadge">${moveInfo.label}</div>` : "")))}
+      <div class="title-block">
+        <div class="addr">${escapeHtml(item.addr || "(주소 미입력)")}</div>
+        <div class="price">${escapeHtml(item.price || "")}</div>
+      </div>
+      ${isTrash ? `
+        <button class="card-del-btn" data-act="force-purge" title="즉시 영구 삭제" style="background:var(--stamp);color:#fff;">🔥 강제삭제</button>
+      ` : `
+        <button class="holdbtn ${isHeld?'on':''}" data-act="toggle-hold">보류</button>
+        <button class="card-del-btn" data-act="card-del">삭제</button>
+      `}
+      <div class="caret">▶</div>
+    `;
+
+    head.addEventListener("click", (e)=>{
+      if(e.target.closest('.multi-chk') || e.target.closest('[data-act="toggle-move"]') || e.target.closest('[data-act="toggle-hold"]') || e.target.closest('[data-act="card-del"]') || e.target.closest('[data-act="force-purge"]')) return;
+      openId = (openId===item.id) ? null : item.id;
+      render();
+    });
+
+    const forcePurgeBtn = head.querySelector('[data-act="force-purge"]');
+    if(forcePurgeBtn){
+      forcePurgeBtn.addEventListener("click", async (e)=>{
+        e.stopPropagation();
+        if(!confirm("이 매물을 완전히 영구 삭제할까요? 복구할 수 없습니다.")) return;
+        listings = listings.filter(x => x.id !== item.id);
+        await saveToFirebase();
+        render();
+      });
+    }
+
+    const chk = head.querySelector('[data-act="toggle-move"]');
+    if(chk){
+      chk.addEventListener("click", async (e)=>{
+        e.stopPropagation();
+        if(!isMoved){
+          item.sub = "나감";
+          item.movedTime = getFormattedNow();
+        } else {
+          item.sub = "";
+          item.movedTime = "";
+        }
+        await saveToFirebase();
+        render();
+      });
+    }
+
+    const holdBtn = head.querySelector('[data-act="toggle-hold"]');
+    if(holdBtn){
+      holdBtn.addEventListener("click", async (e)=>{
+        e.stopPropagation();
+        item.hold = !item.hold;
+        await saveToFirebase();
+        render();
+      });
+    }
+
+    const cardDelBtn = head.querySelector('[data-act="card-del"]');
+    if(cardDelBtn){
+      cardDelBtn.addEventListener("click", async (e)=>{
+        e.stopPropagation();
+        if(!confirm("이 매물을 휴지통으로 보낼까요?")) return;
+        item.isDeleted = true;
+        item.deletedAt = Date.now();
+        if(openId===item.id) openId = null;
+        await saveToFirebase();
+        render();
+      });
+    }
+
+    card.appendChild(head);
+
+    const detail = document.createElement("div");
+    detail.className = "detail";
+
+    // 매물이 열렸을 때만 표시되는 매물 연동형 고객 등록 패널
+    const clientRegPanel = document.createElement("div");
+    clientRegPanel.style.cssText = "background:#fbf8f0;border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;";
+    clientRegPanel.innerHTML = `
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--gold);">👤 이 매물로 접수된 문의 손님 관리</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">현재까지 총 <b>${inquiryCount}건</b>의 문의가 연결되었습니다.</div>
+      </div>
+      <button class="add-btn" data-act="open-client-modal" style="font-size:11.5px;padding:6px 12px;background:var(--blue);">+ 이 매물 문의 고객등록</button>
+    `;
+    clientRegPanel.querySelector('[data-act="open-client-modal"]').addEventListener("click", () => {
+      activeClientListingId = item.id;
+      document.getElementById("cListingTarget").value = `[${item.type}] ${item.addr} (${item.price})`;
+      document.getElementById("cName").value = "";
+      document.getElementById("cPlatform").value = "";
+      document.getElementById("cDetail").value = "";
+      document.getElementById("cInitialConsult").value = "";
+      document.getElementById("clientModal").style.display = "flex";
+    });
+    detail.appendChild(clientRegPanel);
+
+    const grid = document.createElement("div");
+    grid.className = "grid";
+
+    const catLabel = document.createElement("label");
+    catLabel.textContent = "카테고리";
+    const catSelect = document.createElement("select");
+    catSelect.className = "type-select";
+    CATEGORIES.forEach(c=>{
+      const opt = document.createElement("option");
+      opt.value = c.key; opt.textContent = c.key;
+      if(c.key === item.type && item.sub !== "나감" && !item.hold) { opt.selected = true; }
+      catSelect.appendChild(opt);
+    });
+    catSelect.addEventListener("change", async ()=>{
+      const target = CATEGORIES.find(c=>c.key===catSelect.value);
+      if(target){
+        if(!target.keepType){ item.type = target.type; item.sub = ""; item.hold = false; }
+        if(!target.keepSub){ item.sub = target.sub; if(target.sub!=="나감") item.movedTime=""; }
+        item.hold = !!target.hold;
+        item.isDeleted = false;
+        item.deletedAt = null;
+      }
+      await saveToFirebase(); render();
+    });
+    grid.appendChild(catLabel);
+    grid.appendChild(catSelect);
+
+    FIELDS.forEach(([key,label])=>{
+      const lab = document.createElement("label");
+      lab.textContent = label;
+      const isLong = ["note","option","contact","ref"].includes(key);
+      const input = document.createElement(isLong ? "textarea" : "input");
+      if(!isLong) input.type = "text";
+      input.value = item[key] || "";
+
+      let fieldSaveTimer = null;
+      input.addEventListener("input", async ()=>{
+        item[key] = input.value;
+
+        if(key === "officialPrice"){
+          const calcSpan = detail.querySelector("#calcOfficialPriceSpan");
+          if(calcSpan){
+            calcSpan.textContent = getCalc126Text(input.value);
+          }
+        }
+
+        clearTimeout(fieldSaveTimer);
+        fieldSaveTimer = setTimeout(async ()=>{
+          await saveToFirebase();
+          flashCardSaved(item.id);
+        }, 500);
+      });
+
+      input.addEventListener("blur", async ()=>{
+        clearTimeout(fieldSaveTimer);
+        await saveToFirebase();
+        flashCardSaved(item.id);
+        if(key==="addr" || key==="price") render();
+      });
+
+      grid.appendChild(lab);
+
+      if(key === "officialPrice"){
+        const containerDiv = document.createElement("div");
+        containerDiv.style.display = "flex";
+        containerDiv.style.flexDirection = "column";
+        containerDiv.style.gap = "4px";
+        containerDiv.appendChild(input);
+
+        const calcSpan = document.createElement("span");
+        calcSpan.id = "calcOfficialPriceSpan";
+        calcSpan.style.fontSize = "11.5px";
+        calcSpan.style.color = "var(--stamp)";
+        calcSpan.style.fontWeight = "700";
+        calcSpan.textContent = getCalc126Text(item.officialPrice || "");
+        containerDiv.appendChild(calcSpan);
+
+        grid.appendChild(containerDiv);
+      } else {
+        grid.appendChild(input);
+      }
+    });
+
+    detail.appendChild(grid);
+
+    if(!Array.isArray(item.files)) item.files = [];
+    const MAX_FILES = 3;
+    const MAX_FILE_SIZE = 500 * 1024;
+
+    const fileRow = document.createElement("div");
+    fileRow.className = "grid";
+    fileRow.style.marginTop = "4px";
+    const fileLabel = document.createElement("label");
+    fileLabel.textContent = `파일(${item.files.length}/${MAX_FILES})`;
+    const fileCell = document.createElement("div");
+    fileCell.className = "file-cell";
+    fileCell.style.flexDirection = "column";
+    fileCell.style.alignItems = "flex-start";
+
+    item.files.forEach((f, idx)=>{
+      const row = document.createElement("div");
+      row.className = "file-cell";
+      const openLink = document.createElement("span");
+      openLink.className = "file-open";
+      openLink.textContent = `📄 ${f.name} (열기)`;
+      openLink.addEventListener("click", ()=>{
+        const w = window.open();
+        if(w){
+          if(f.type && f.type.startsWith("image/")){
+            w.document.write(`<img src="${f.data}" style="max-width:100%;">`);
+          } else {
+            w.document.write(`<iframe src="${f.data}" style="width:100%;height:100vh;border:none;"></iframe>`);
+          }
+        }
+      });
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "file-remove";
+      removeBtn.textContent = "✕ 삭제";
+      removeBtn.addEventListener("click", async ()=>{
+        if(!confirm(`"${f.name}" 파일을 삭제할까요?`)) return;
+        item.files.splice(idx, 1);
+        await saveToFirebase();
+        render();
+      });
+      row.appendChild(openLink);
+      row.appendChild(removeBtn);
+      fileCell.appendChild(row);
+    });
+
+    if(!isTrash && item.files.length < MAX_FILES){
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = ".pdf,.jpg,.jpeg,.png";
+      fileInput.style.cssText = "position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;";
+
+      const attachBtn = document.createElement("button");
+      attachBtn.type = "button";
+      attachBtn.className = "file-btn";
+      attachBtn.textContent = "📎 파일 첨부";
+      attachBtn.addEventListener("click", ()=>fileInput.click());
+
+      fileInput.addEventListener("change", async ()=>{
+        const f = fileInput.files && fileInput.files[0];
+        if(!f) return;
+        if(f.size > MAX_FILE_SIZE){
+          alert(`파일이 너무 커요 (${(f.size/1024).toFixed(0)}KB). 500KB 이하만 가능해요.`);
+          fileInput.value = "";
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = async ()=>{
+          item.files.push({name: f.name, type: f.type, data: reader.result});
+          await saveToFirebase();
+          flashCardSaved(item.id);
+          render();
+        };
+        reader.readAsDataURL(f);
+      });
+
+      fileCell.appendChild(attachBtn);
+      fileCell.appendChild(fileInput);
+    }
+
+    fileRow.appendChild(fileLabel);
+    fileRow.appendChild(fileCell);
+    detail.appendChild(fileRow);
+
+    if(!Array.isArray(item.photos)) item.photos = [];
+    const MAX_PHOTOS = 12;
+
+    const photoRow = document.createElement("div");
+    photoRow.className = "grid";
+    photoRow.style.marginTop = "4px";
+    const photoLabel = document.createElement("label");
+    photoLabel.textContent = `사진(${item.photos.length}/${MAX_PHOTOS})`;
+    const photoCell = document.createElement("div");
+    photoCell.className = "photo-grid";
+
+    item.photos.forEach((p, idx)=>{
+      const thumb = document.createElement("div");
+      thumb.className = "photo-thumb";
+      const img = document.createElement("img");
+      img.src = p.data;
+      img.addEventListener("click", ()=>{
+        const w = window.open();
+        if(w) w.document.write(`<img src="${p.data}" style="max-width:100%;">`);
+      });
+      if(!isTrash){
+        const x = document.createElement("div");
+        x.className = "photo-x";
+        x.textContent = "✕";
+        x.addEventListener("click", async (e)=>{
+          e.stopPropagation();
+          item.photos.splice(idx, 1);
+          await saveToFirebase();
+          render();
+        });
+        thumb.appendChild(x);
+      }
+      thumb.appendChild(img);
+      photoCell.appendChild(thumb);
+    });
+
+    if(!isTrash && item.photos.length < MAX_PHOTOS){
+      const photoInput = document.createElement("input");
+      photoInput.type = "file";
+      photoInput.accept = "image/*";
+      photoInput.multiple = true;
+      photoInput.style.cssText = "position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;";
+
+      const addBtn = document.createElement("div");
+      addBtn.className = "photo-add";
+      addBtn.textContent = "+";
+      addBtn.addEventListener("click", ()=>photoInput.click());
+
+      function compressImage(file, maxDim, quality){
+        return new Promise((resolve, reject)=>{
+          const reader = new FileReader();
+          reader.onload = (e)=>{
+            const img = new Image();
+            img.onload = ()=>{
+              let w = img.width, h = img.height;
+              if(w > maxDim || h > maxDim){
+                if(w >= h){ h = Math.round(h * maxDim / w); w = maxDim; }
+                else { w = Math.round(w * maxDim / h); h = maxDim; }
+              }
+              const canvas = document.createElement("canvas");
+              canvas.width = w; canvas.height = h;
+              canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+              resolve(canvas.toDataURL("image/jpeg", quality));
+            };
+            img.onerror = () => reject(new Error("이미지 오류"));
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      photoInput.addEventListener("change", async ()=>{
+        const files = Array.from(photoInput.files || []);
+        const room = MAX_PHOTOS - item.photos.length;
+        const toProcess = files.slice(0, room);
+        for(const f of toProcess){
+          try{
+            let dataUrl = await compressImage(f, 1024, 0.7);
+            if(dataUrl.length > 260 * 1024){
+              dataUrl = await compressImage(f, 800, 0.55);
+            }
+            item.photos.push({name: f.name, data: dataUrl});
+          }catch(e){
+            console.error("사진 압축 실패", e);
+          }
+        }
+        photoInput.value = "";
+        await saveToFirebase();
+        flashCardSaved(item.id);
+        render();
+      });
+
+      photoCell.appendChild(addBtn);
+      photoCell.appendChild(photoInput);
+    }
+
+    photoRow.appendChild(photoLabel);
+    photoRow.appendChild(photoCell);
+    detail.appendChild(photoRow);
+
+    if(!isTrash){
+      const hint = document.createElement("div");
+      hint.className = "movehint";
+      hint.textContent = `체크박스를 누르면 '나감' 상태와 처리 시각이 기록되며, 다시 누르면 해제됩니다.`;
+      detail.appendChild(hint);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "row-actions";
+    
+    if(isTrash){
+      actions.innerHTML = `
+        <span class="saved" data-saved="${item.id}">저장됨 ✓</span>
+        <button class="restore-btn" data-act="restore">♻️ 복구하기</button>
+      `;
+      actions.querySelector('[data-act="restore"]').addEventListener("click", async ()=>{
+        if(!confirm("이 매물을 다시 일반 목록으로 복구할까요?")) return;
+        item.isDeleted = false;
+        item.deletedAt = null;
+        await saveToFirebase();
+        render();
+      });
+    } else {
+      actions.innerHTML = `
+        <span class="saved" data-saved="${item.id}">저장됨 ✓</span>
+      `;
+    }
+    detail.appendChild(actions);
+
+    card.appendChild(detail);
+    directListEl.appendChild(card);
+  });
+
+  renderPagination(filtered.length);
+}
+
+// 전체선택 체크박스 이벤트
+document.getElementById("selectAllTrashChk").addEventListener("change", (e)=>{
+  const isChecked = e.target.checked;
+  document.querySelectorAll(".multi-chk").forEach(cb => {
+    cb.checked = isChecked;
+  });
+});
+
+function performAiSearch(){
+  const query = document.getElementById("aiNeedsInput").value.trim().toLowerCase();
+  const container = document.getElementById("aiRecResultsContainer");
+  const countTitle = document.getElementById("aiRecCountTitle");
+  if(!container) return;
+
+  const activeList = listings.filter(l => !l.isDeleted && l.sub !== "나감" && !l.hold);
+  if(!query){
+    countTitle.textContent = "추천 결과 (0건)";
+    container.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:11.5px;padding:15px 0;">손님 니즈를 문장으로 입력 후 버튼을 누르세요.</div>`;
+    return;
+  }
+
+  const keywords = query.split(/[\s,]+/);
+  
+  const matched = activeList.filter(item => {
+    const haystack = [item.addr, item.price, item.option, item.note, item.ref, item.structure, item.type].filter(Boolean).join(" ").toLowerCase();
+    let score = 0;
+    keywords.forEach(kw => {
+      if(kw && haystack.includes(kw)) score++;
+    });
+    return score > 0;
+  });
+
+  countTitle.textContent = `추천 결과 (${matched.length}건)`;
+  container.innerHTML = "";
+
+  if(matched.length === 0){
+    container.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:11.5px;padding:15px 0;">조건에 부합하는 매물을 찾지 못했습니다.</div>`;
+    return;
+  }
+
+  matched.slice(0, 8).forEach(item => {
+    const card = document.createElement("div");
+    card.className = "rec-card";
+    card.innerHTML = `
+      <div class="rec-card-top">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="checkbox" class="ai-rec-chk" data-rec-id="${item.id}">
+          <span class="badge ${item.type}" style="font-size:9.5px;padding:2px 5px;">${item.type}</span>
+        </div>
+        <div class="rec-price">${escapeHtml(item.price || "")}</div>
+      </div>
+      <div class="rec-addr">${escapeHtml(item.addr || "")}</div>
+      <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(item.note || item.ref || "특이사항 없음")}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+document.getElementById("aiSearchBtn").addEventListener("click", performAiSearch);
+
+// 전문적이고 신뢰감 있는 비즈니스 톤의 답장 유도형 문자 생성
+document.getElementById("copyBriefBtn").addEventListener("click", async () => {
+  const checkedRecs = document.querySelectorAll(".ai-rec-chk:checked");
+  if(checkedRecs.length === 0){
+    alert("추천 매물 목록에서 손님에게 보낼 매물을 체크박스로 선택해주세요.");
+    return;
+  }
+
+  const selectedIds = Array.from(checkedRecs).map(cb => cb.dataset.recId);
+  const selectedItems = listings.filter(l => selectedIds.includes(l.id));
+
+  const introPool = [
+    `안녕하십니까, 마중부동산 중개법인 정용호 차장입니다. 의뢰해주신 조건에 부합하는 엄선된 추천 매물 리스트를 안내해 드립니다.`,
+    `안녕하십니까, 마중부동산 중개법인 정용호 차장입니다. 고객님께서 문의하신 조건 검토 후, 현재 계약 조건이 가장 우수한 알짜배기 매물을 정리하여 송부해 드립니다.`,
+    `안녕하십니까, 마중부동산 중개법인 정용호 차장입니다. 요청하신 조건에 부합하는 급매 및 조건 우수 매물을 선별하여 안내해 드립니다.`
+  ];
+
+  const outroPool = [
+    `\n\n특정 조건에 부합하는 매물은 소진 속도가 빠른 편이므로, 세부 내용 검토 후 마음에 드시는 번호를 회신해 주시면 신속하게 현장 방문 및 세부 조율을 도와드리겠습니다.`,
+    `\n\n상세 조건 및 현장 답사를 희망하시는 일정이나 매물 번호를 편하게 회신해 주시면 원활하게 일정을 조율해 드리겠습니다.`,
+    `\n\n보시고 가장 선호하시는 매물 번호나 추가로 조율이 필요한 조건이 있으시면 편하게 말씀해 주십시오. 최적의 중개로 보답하겠습니다.`
+  ];
+
+  const randomIntro = introPool[Math.floor(Math.random() * introPool.length)];
+  const randomOutro = outroPool[Math.floor(Math.random() * outroPool.length)];
+
+  let text = `${randomIntro}\n\n`;
+  selectedItems.forEach((item, idx) => {
+    text += `[${idx + 1}] ${item.type} | ${item.addr}\n`;
+    text += `   - 금액: ${item.price}\n`;
+    if(item.mgmtFee) text += `   - 관리비: ${item.mgmtFee}\n`;
+    if(item.structure) text += `   - 구조: ${item.structure}\n`;
+    if(item.note) text += `   - 비고: ${item.note}\n`;
+    text += `\n`;
+  });
+  text = text.trim() + randomOutro;
+
+  try{
+    await navigator.clipboard.writeText(text);
+    alert(`[마중부동산 정용호 차장] 전문 추천 문자 문구가 클립보드에 복사되었습니다! 카카오톡이나 문자에 붙여넣으세요.`);
+  }catch(e){
+    prompt("아래 내용을 복사하세요:", text);
+  }
+});
+
+document.getElementById("openGeneralClientBtn").addEventListener("click", () => {
+  activeClientListingId = "";
+  document.getElementById("cListingTarget").value = "일반 고객 문의 (연동 매물 없음)";
+  document.getElementById("cName").value = "";
+  document.getElementById("cPlatform").value = "";
+  document.getElementById("cDetail").value = "";
+  document.getElementById("cInitialConsult").value = "";
+  document.getElementById("clientModal").style.display = "flex";
+});
+
+document.getElementById("clientCancelBtn").addEventListener("click", () => {
+  document.getElementById("clientModal").style.display = "none";
+});
+
+document.getElementById("clientSaveBtn").addEventListener("click", async () => {
+  const name = document.getElementById("cName").value.trim();
+  if(!name){
+    alert("손님 성함 및 연락처를 입력해주세요.");
+    return;
+  }
+
+  const autoRemindDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+  autoRemindDate.setHours(10, 0, 0, 0);
+  const yyyy = autoRemindDate.getFullYear();
+  const mm = String(autoRemindDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(autoRemindDate.getDate()).padStart(2, '0');
+  const autoRemindStr = `${yyyy}-${mm}-${dd}T10:00`;
+
+  const newClient = {
+    id: "c" + Date.now(),
+    listingId: activeClientListingId || "",
+    name: name,
+    platform: document.getElementById("cPlatform").value.trim() || "기타",
+    purpose: document.getElementById("cPurpose").value,
+    detail: document.getElementById("cDetail").value.trim(),
+    remindTime: autoRemindStr,
+    createdAt: getFormattedNow(),
+    history: []
+  };
+
+  const initialLog = document.getElementById("cInitialConsult").value.trim();
+  const consultText = initialLog ? initialLog : "문의 접수 및 응대 완료";
+  
+  newClient.history.push({
+    id: "h" + Date.now(),
+    round: 1,
+    time: getFormattedNow(),
+    text: consultText
+  });
+
+  clients.unshift(newClient);
+  await saveToFirebase();
+  document.getElementById("clientModal").style.display = "none";
+  renderClients();
+  render();
+  alert("신규 손님 및 문의 내역이 성공적으로 등록되었습니다!");
+});
+
+function renderClients(){
+  const container = document.getElementById("clientListContainer");
+  const paginationContainer = document.getElementById("clientPaginationBox");
+  if(!container) return;
+  container.innerHTML = "";
+  paginationContainer.innerHTML = "";
+
+  if(clients.length === 0){
+    container.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0;">등록된 문의 손님이 없어요.</div>`;
+    return;
+  }
+
+  const totalPages = Math.ceil(clients.length / CLIENTS_PER_PAGE);
+  if(clientCurrentPage > totalPages) clientCurrentPage = totalPages;
+
+  const startIndex = (clientCurrentPage - 1) * CLIENTS_PER_PAGE;
+  const pageClients = clients.slice(startIndex, startIndex + CLIENTS_PER_PAGE);
+
+  const nowMs = Date.now();
+
+  pageClients.forEach(c => {
+    let isRemindOverdue = false;
+    let remindStr = "리마인드 미설정";
+    if(c.remindTime){
+      const remindMs = new Date(c.remindTime).getTime();
+      remindStr = c.remindTime.replace("T", " ");
+      if(nowMs >= remindMs) {
+        isRemindOverdue = true;
+      }
+    }
+
+    let linkedListingText = "일반 고객 문의 (연동 매물 없음)";
+    if(c.listingId){
+      const found = listings.find(l => l.id === c.listingId);
+      if(found){
+        linkedListingText = `🏠 문의 매물: [${found.type}] ${found.addr} (${found.price})`;
+      }
+    }
+
+    const card = document.createElement("div");
+    card.className = "client-card" + (isRemindOverdue ? " remind-alert" : "");
+    
+    let historyHtml = "";
+    if(Array.isArray(c.history) && c.history.length > 0){
+      historyHtml = `<div class="consult-history">` + c.history.map((h, hIdx) => {
+        const roundNum = c.history.length - hIdx;
+        return `
+          <div class="consult-history-item">
+            <div style="flex:1;"><b>[${roundNum}차 상담 | ${h.time}]</b> ${escapeHtml(h.text)}</div>
+            <button class="card-del-btn" data-act="del-history" data-cid="${c.id}" data-hid="${h.id}" style="font-size:9.5px;padding:2px 5px;margin-left:4px;">삭제</button>
+          </div>
+        `;
+      }).join("") + `</div>`;
+    }
+
+    const nextRoundNumber = (Array.isArray(c.history) ? c.history.length : 0) + 1;
+
+    card.innerHTML = `
+      <div class="client-head">
+        <span>👤 ${escapeHtml(c.name)} (${escapeHtml(c.platform)})</span>
+        <span style="font-size:11px; color:${isRemindOverdue?'var(--stamp)':'var(--muted)'}; font-weight:bold;">${isRemindOverdue ? '🚨 리마인드 도래!' : '⏰ 예정: ' + remindStr}</span>
+      </div>
+      <div class="client-sub">
+        <div style="color:var(--gold);font-weight:700;margin-bottom:2px;">${linkedListingText}</div>
+        <b>목적:</b> ${escapeHtml(c.purpose)} | <b>요청:</b> ${escapeHtml(c.detail || "없음")}
+      </div>
+      ${historyHtml}
+      <div style="display:flex;gap:6px;margin-top:6px;align-items:center;">
+        <span style="font-size:11px;font-weight:700;color:var(--blue);white-space:nowrap;">${nextRoundNumber}차 상담:</span>
+        <input type="text" placeholder="${nextRoundNumber}차 상담 내용 기록..." id="logInput_${c.id}" style="flex:1;border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:11.5px;background:#fff;">
+        <button class="add-btn" data-act="add-log" data-cid="${c.id}" style="font-size:11px;padding:6px 10px;border-radius:6px;">기록</button>
+        <button class="card-del-btn" data-act="del-client" data-cid="${c.id}" style="font-size:11px;padding:6px 8px;">고객삭제</button>
+      </div>
+    `;
+
+    card.querySelector('[data-act="add-log"]').addEventListener("click", async () => {
+      const inputEl = card.querySelector(`#logInput_${c.id}`);
+      const val = inputEl.value.trim();
+      if(!val) return;
+
+      const nowTimeStr = getFormattedNow();
+      if(!Array.isArray(c.history)) c.history = [];
+      
+      c.history.unshift({
+        id: "h" + Date.now(),
+        round: c.history.length + 1,
+        time: nowTimeStr,
+        text: val
+      });
+      inputEl.value = "";
+      
+      const nextRemind = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+      nextRemind.setHours(10, 0, 0, 0);
+      c.remindTime = `${nextRemind.getFullYear()}-${String(nextRemind.getMonth()+1).padStart(2,'0')}-${String(nextRemind.getDate()).padStart(2,'0')}T10:00`;
+
+      await saveToFirebase();
+      renderClients();
+    });
+
+    card.querySelectorAll('[data-act="del-history"]').forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const hid = btn.dataset.hid;
+        if(!confirm("이 상담 기록만 삭제할까요?")) return;
+        c.history = c.history.filter(h => h.id !== hid);
+        await saveToFirebase();
+        renderClients();
+      });
+    });
+
+    card.querySelector('[data-act="del-client"]').addEventListener("click", async () => {
+      if(!confirm(`"${c.name}" 손님 정보를 삭제할까요?`)) return;
+      clients = clients.filter(x => x.id !== c.id);
+      await saveToFirebase();
+      renderClients();
+      render();
+    });
+
+    container.appendChild(card);
+  });
+
+  if(totalPages > 1){
+    for(let i = 1; i <= totalPages; i++){
+      const pBtn = document.createElement("button");
+      pBtn.className = "client-page-btn" + (clientCurrentPage === i ? " active" : "");
+      pBtn.textContent = i;
+      pBtn.addEventListener("click", () => {
+        clientCurrentPage = i;
+        renderClients();
+      });
+      paginationContainer.appendChild(pBtn);
+    }
+  }
+}
+
+document.getElementById("multiDeleteBtn").addEventListener("click", async () => {
+  const checkedBoxes = document.querySelectorAll(".multi-chk:checked");
+  if(checkedBoxes.length === 0){
+    alert("처리할 매물을 체크박스로 선택해주세요.");
+    return;
+  }
+
+  const ids = Array.from(checkedBoxes).map(cb => cb.dataset.itemId);
+
+  if(statusFilter === "휴지통"){
+    if(!confirm(`선택한 ${ids.length개의 매물을 완전히 영구 삭제할까요?`)) return;
+    listings = listings.filter(item => !ids.includes(item.id));
+  } else {
+    if(!confirm(`선택한 ${ids.length}개의 매물을 휴지통으로 보낼까요?`)) return;
+    listings.forEach(item => {
+      if(ids.includes(item.id)){
+        item.isDeleted = true;
+        item.deletedAt = Date.now();
+        if(openId === item.id) openId = null;
+      }
+    });
+  }
+
+  await saveToFirebase();
+  render();
+});
+
+// 휴지통 전체 강제삭제 버튼
+document.getElementById("trashPurgeAllBtn").addEventListener("click", async () => {
+  if(!confirm("휴지통에 있는 모든 매물을 즉시 영구 삭제할까요? 복구할 수 없습니다.")) return;
+  listings = listings.filter(item => !item.isDeleted);
+  await saveToFirebase();
+  render();
+});
+
+document.getElementById("multiRestoreBtn").addEventListener("click", async () => {
+  const checkedBoxes = document.querySelectorAll(".multi-chk:checked");
+  if(checkedBoxes.length === 0){
+    alert("복구할 매물을 체크박스로 선택해주세요.");
+    return;
+  }
+
+  if(!confirm(`선택한 ${checkedBoxes.length}개의 매물을 다시 일반 목록으로 복구할까요?`)) return;
+
+  const idsToRestore = Array.from(checkedBoxes).map(cb => cb.dataset.itemId);
+
+  listings.forEach(item => {
+    if(idsToRestore.includes(item.id)){
+      item.isDeleted = false;
+      item.deletedAt = null;
+    }
+  });
+
+  await saveToFirebase();
+  render();
+});
+
+function parseKoreanMoneyToNumber(str){
+  if(!str) return 0;
+  let clean = str.replace(/,/g, "").trim();
+
+  if(/^\d+$/.test(clean)){
+    return Number(clean);
+  }
+
+  let total = 0;
+  const eokMatch = clean.match(/([\d\.]+)\s*억/);
+  if(eokMatch){
+    const eokVal = parseFloat(eokMatch[1]);
+    if(!isNaN(eokVal)){
+      total += eokVal * 100000000;
+    }
+  }
+
+  const chunMatch = clean.match(/억\s*(\d+)\s*천/) || clean.match(/^([\d\.]+)\s*천/);
+  if(chunMatch){
+    const chunVal = parseFloat(chunMatch[1]);
+    if(!isNaN(chunVal)){
+      if(clean.includes("억")){
+        total += chunVal * 10000000;
+      } else {
+        total += chunVal * 100000000;
+      }
+    }
+  }
+
+  const remainderMatch = clean.match(/억\s*([\d,]+)/);
+  if(remainderMatch && !clean.includes("천")){
+    const remStr = remainderMatch[1].replace(/[^0-9]/g, "");
+    const remVal = parseInt(remStr, 10);
+    if(!isNaN(remVal)){
+      if(remVal < 10000) {
+        total += remVal * 10000;
+      } else {
+        total += remVal;
+      }
+    }
+  }
+
+  if(total === 0){
+    const numOnly = clean.replace(/[^0-9]/g, "");
+    if(numOnly){
+      let n = parseInt(numOnly, 10);
+      if(clean.includes("만") || n < 10000000){
+        total = n * 10000;
+      } else {
+        total = n;
+      }
+    }
+  }
+
+  return total;
+}
+
+function getCalc126Text(valStr){
+  if(!valStr) return "공시가 ( 0원 x 126% = 0원 )";
+  const num = parseKoreanMoneyToNumber(valStr);
+  if(isNaN(num) || num === 0) return `공시가 ( ${valStr} x 126% )`;
+  
+  const result = Math.round(num * 1.26);
+  const formattedOrig = num.toLocaleString() + "원";
+  const formattedRes = result.toLocaleString() + "원";
+  return `공시가 ( ${valStr.trim()} [${formattedOrig}] x 126% = ${formattedRes} )`;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function renderMemos(){
+  const container = document.getElementById("memoListContainer");
+  if(!container) return;
+  container.innerHTML = "";
+
+  const list = memosData[currentMemoType] || [];
+  if(list.length === 0){
+    container.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:12px;padding:16px 0;">등록된 내용이 없어요. 아래에 내용을 적고 [메모 등록하기]를 눌러보세요!</div>`;
+    return;
+  }
+
+  const sorted = [...list].sort((a,b) => b.id - a.id);
+
+  sorted.forEach(m => {
+    const itemEl = document.createElement("div");
+    itemEl.className = "memo-item";
+    itemEl.innerHTML = `
+      <div class="memo-item-head">
+        <span>🕒 ${m.time}</span>
+        <button class="memo-item-del" data-mid="${m.id}">삭제</button>
+      </div>
+      <div class="memo-item-content">${escapeHtml(m.text)}</div>
+    `;
+    itemEl.querySelector(".memo-item-del").addEventListener("click", async () => {
+      if(!confirm("이 항목을 삭제할까요?")) return;
+      memosData[currentMemoType] = memosData[currentMemoType].filter(x => x.id !== m.id);
+      await saveMemosToFirebase();
+      renderMemos();
+    });
+    container.appendChild(itemEl);
+  });
+}
+
+document.getElementById("addBtn").addEventListener("click", async ()=>{
+  const item = newListing();
+  item.addr = "새 매물 주소";
+  listings.unshift(item);
+  openId = item.id;
+  currentPage = 1;
+  statusFilter = "전체";
+  districtFilter = "전체";
+  document.querySelectorAll("#statusFiltersContainer .filter-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelector('#statusFiltersContainer [data-f="전체"]').classList.add("active");
+  await saveToFirebase();
+  render();
+});
+
+document.getElementById("parseOpenBtn").addEventListener("click", ()=>{
+  document.getElementById("parseTextarea").value = "";
+  document.getElementById("parseModal").style.display = "flex";
+});
+document.getElementById("parseCancelBtn").addEventListener("click", ()=>{
+  document.getElementById("parseModal").style.display = "none";
+});
+
+document.getElementById("parseConfirmBtn").addEventListener("click", async ()=>{
+  const rawText = document.getElementById("parseTextarea").value.trim();
+  if(!rawText){
+    alert("분석할 텍스트를 입력해주세요.");
+    return;
+  }
+
+  const chunks = splitMultipleListings(rawText);
+  const newItems = [];
+
+  chunks.forEach(chunk => {
+    const trimmed = chunk.trim();
+    if(trimmed){
+      const parsedItem = parseListingText(trimmed);
+      newItems.push(parsedItem);
+    }
+  });
+
+  if(newItems.length === 0){
+    alert("유효한 매물 텍스트를 찾지 못했습니다.");
+    return;
+  }
+
+  listings.unshift(...newItems);
+  openId = newItems[0].id;
+  currentPage = 1;
+  statusFilter = "전체";
+  districtFilter = "전체";
+  document.querySelectorAll("#statusFiltersContainer .filter-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelector('#statusFiltersContainer [data-f="전체"]').classList.add("active");
+  
+  await saveToFirebase();
+  document.getElementById("parseModal").style.display = "none";
+  render();
+  alert(`총 ${newItems.length}개의 매물이 정상적으로 일괄 등록되었습니다!`);
+});
+
+document.getElementById("statusFiltersContainer").addEventListener("click",(e)=>{
+  const btn = e.target.closest(".filter-btn");
+  if(!btn) return;
+  statusFilter = btn.dataset.f;
+  currentPage = 1;
+  document.querySelectorAll("#statusFiltersContainer .filter-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+});
+
+document.getElementById("searchInput").addEventListener("input",(e)=>{
+  searchQuery = e.target.value;
+  currentPage = 1;
+  render();
+});
+
+document.querySelectorAll(".memo-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".memo-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    currentMemoType = tab.dataset.mtype;
+    document.getElementById("memoInput").value = "";
+    renderMemos();
+  });
+});
+
+document.getElementById("memoAddBtn").addEventListener("click", async () => {
+  const textarea = document.getElementById("memoInput");
+  const textVal = textarea.value.trim();
+  if(!textVal){
+    alert("내용을 입력해주세요.");
+    return;
+  }
+
+  if(!Array.isArray(memosData[currentMemoType])) {
+    memosData[currentMemoType] = [];
+  }
+
+  const newMemo = {
+    id: Date.now(),
+    text: textVal,
+    time: getFormattedNow()
+  };
+
+  memosData[currentMemoType].push(newMemo);
+  textarea.value = "";
+  await saveMemosToFirebase();
+  renderMemos();
+});
+
+document.getElementById("memoInput").addEventListener("focus", () => {
+  document.getElementById("memoDatePreview").textContent = `작성 시각: ${getFormattedNow()}`;
+});
+
+initRealtimeSync();
+</script>
+</body>
+</html>
